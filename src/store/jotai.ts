@@ -1,26 +1,29 @@
+import axios from "axios";
+import { api } from "../utils/api";
 import { atom } from "jotai";
 
+import { atomWithRefresh, unwrap } from "jotai/utils"
 
+export let loadingAtom = atom(false)
 
-export let dataAtom = atom([
-    {
-        name: 'ali',
-        age: 12,
-        id: 13
-    },
-    {
-        name: 'vali',
-        age: 105,
-        id: -2
+export let getDataAtom = atomWithRefresh(async() => {
+    try {
+        let { data } = await axios.get(api)
+        return data
+
+    } catch (error) {
+        console.log(error);
     }
-])
-
-
-export let deleteUserAtom = atom(null,(get, set, id) => {
-    set(dataAtom, get(dataAtom).filter(el => el.id != id))
 })
 
+export let dataLoadableAtom = unwrap(getDataAtom, (prev) => prev || [])
 
-export let addUserAtom= atom(null, (get,set,user)=>{
-    set(dataAtom, [...get(dataAtom),user])
+
+export let deleteAtom=atom(null,async(get,set,id)=>{
+    try {
+        await axios.delete(`${api}/${id}`)
+        set(getDataAtom)
+    } catch (error) {
+        console.log(error);
+    }
 })

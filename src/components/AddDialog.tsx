@@ -5,9 +5,10 @@ import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
 import { useForm } from "react-hook-form"
 import { useData } from "../store/zustand"
-
+import * as z from "zod"
 const AddDialog = ({ open, setOpen }) => {
   let {postUser}=useData(state=>state)
+
 
   const {
     register,
