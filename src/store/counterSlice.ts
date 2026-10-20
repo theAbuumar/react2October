@@ -10,16 +10,27 @@ let initialState: InitialState = {
     loading: false,
     error: []
 }
-export let getUsers = createAsyncThunk('data/getUsers', async () => {
+
+export let getUsers = createAsyncThunk('data/getUsers', async (params) => {
+    console.log(params);
+
     try {
-        let { data } = await axios.get(api)
+        let { data } = await axios.get(api, {
+            params: {
+                fullname: params?.search || undefined,
+                status: params.select == 'all' ? undefined : params.select,
+                page: params.page,
+                limit: params.limit
+            }
+        })
+        console.log(data);
         return data
     } catch (error) {
         console.log(error);
     }
 })
 
-export let deleteUser = createAsyncThunk('data/deleteUser', async (id, {dispatch}) => {
+export let deleteUser = createAsyncThunk('data/deleteUser', async (id, { dispatch }) => {
     try {
         await axios.delete(`${api}/${id}`)
         dispatch(getUsers())
@@ -27,25 +38,48 @@ export let deleteUser = createAsyncThunk('data/deleteUser', async (id, {dispatch
         console.log(error);
     }
 })
+export let addUser = createAsyncThunk('data/addUser', async (user, { dispatch }) => {
+    try {
+        await axios.post(api, user)
+        dispatch(getUsers())
+    } catch (error) {
+        console.log(error);
+
+    }
+})
+export let editUser = createAsyncThunk('data/editUser', async (user, { dispatch }) => {
+    try {
+        await axios.put(`${api}/${user.id}`, user)
+        dispatch(getUsers())
+    } catch (error) {
+        console.log(error);
+
+    }
+})
+
 
 export const dataSlice = createSlice({
     name: 'data',
     initialState,
     reducers: {
+
     },
     extraReducers: (builder) => {
-        builder.addCase(getUsers.pending, (state) => {
-            state.loading = true
-        })
-            .addCase(getUsers.fulfilled, (state, action) => {
-                state.loading = false
-                state.data = action.payload
+        builder
+            .addCase(getUsers.pending, (state, { payload }) => {
+                state.loading = true
             })
-            .addCase(getUsers.rejected, (state, action) => {
+            .addCase(getUsers.fulfilled, (state, { payload }) => {
                 state.loading = false
-                state.error = action.payload
+                state.data = payload
             })
+            .addCase(getUsers.rejected, (state, { payload }) => {
+                state.loading = false
+                state.error = [...state.error, payload]
+            })
+
     }
+
 })
 
 export const { } = dataSlice.actions
